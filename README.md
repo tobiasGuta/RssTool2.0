@@ -33,7 +33,7 @@ RSSBot Elite delivers real-time RSS and YouTube feed notifications across multip
 Use Environment Variables:
 
 ```bash
-export DISCORD_BOT_TOKEN="your-token"
+export Discord="your-token"
 ```
 
 ## 🔧 Inside rss.py:
