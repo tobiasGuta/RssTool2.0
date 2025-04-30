@@ -5,12 +5,15 @@ import aiohttp
 import asyncio
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse, parse_qs, urlunparse
+from bs4 import BeautifulSoup
+
+
 
 CONFIG_FILE = 'feeds_config.json'
 SEEN_FILE = 'seen_entries.txt'
-CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can change this
+CHECK_INTERVAL = 125  # seconds
 SEND_INTERVAL = 5
 
 logging.basicConfig(level=logging.INFO)
@@ -18,7 +21,11 @@ sent_articles = set()
 queue = asyncio.Queue()
 session = None
 
-# --- Helpers ---
+
+def is_valid_image_url(url):
+    return url and url.startswith("http") and url.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
+
+
 def load_config():
     with open(CONFIG_FILE) as f:
         return json.load(f)
@@ -47,17 +54,81 @@ def hash_entry(title, link, published):
     return h.hexdigest()
 
 def extract_image(entry):
+    # YouTube thumbnail
+    if "media_thumbnail" in entry:
+        thumb = entry["media_thumbnail"]
+        if isinstance(thumb, list) and "url" in thumb[0]:
+            return thumb[0]["url"]
+
     if entry.get("media_content"):
         return entry["media_content"][0].get("url")
-    if entry.get("media_thumbnail"):
-        return entry["media_thumbnail"][0].get("url")
+
     if "enclosures" in entry and entry["enclosures"]:
         return entry["enclosures"][0].get("href")
-    summary = entry.get("summary", "")
-    match = re.search(r'<img[^>]+src="([^"]+)"', summary)
-    if match:
-        return match.group(1)
+
+    for key in ["summary", "description"]:
+        content = entry.get(key, "")
+        match = re.search(r'<img[^>]+src="([^"]+)"', content)
+        if match:
+            return match.group(1)
+
+    if "content" in entry:
+        for content_item in entry["content"]:
+            match = re.search(r'<img[^>]+src="([^"]+)"', content_item.get("value", ""))
+            if match:
+                return match.group(1)
+
+    if "youtube.com/watch" in entry.get("link", ""):
+        video_id = entry["link"].split("v=")[-1]
+        return f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+
     return None
+
+async def fetch_og_image(url):
+    try:
+        await create_session()  # Ensure session is alive
+
+        headers = {"User-Agent": "Mozilla/5.0"}
+        async with session.get(url, headers=headers, timeout=6) as resp:
+            html = await resp.text()
+            soup = BeautifulSoup(html, "html.parser")
+
+            # Safely fetch og:image
+            og_tag = soup.find("meta", attrs={"property": "og:image"})
+            if og_tag:
+                img_url = og_tag.get("content", None)
+                if img_url and is_valid_image_url(img_url):
+                    return img_url
+
+            # Safely fetch twitter:image
+            twitter_tag = soup.find("meta", attrs={"name": "twitter:image"})
+            if twitter_tag:
+                img_url = twitter_tag.get("content", None)
+                if img_url and is_valid_image_url(img_url):
+                    return img_url
+
+            # <article> image
+            article = soup.find("article")
+            if article:
+                img = article.find("img")
+                if img:
+                    img_url = img.get("src", None)
+                    if img_url and is_valid_image_url(img_url):
+                        return img_url
+
+            # Fallback: any image
+            img = soup.find("img")
+            if img:
+                img_url = img.get("src", None)
+                if img_url and is_valid_image_url(img_url):
+                    return img_url
+
+    except Exception as e:
+        logging.warning(f"[IMAGE FETCH FAILED] {url} :: {type(e).__name__} - {e}")
+
+    return None
+
+
 
 async def create_session():
     global session
@@ -68,19 +139,39 @@ async def close_session():
     if session and not session.closed:
         await session.close()
 
-async def send_embed(title, link, image, webhook_url, category):
-    embed = {
-        "title": title,
-        "url": link,
-        "description": f"[Click to read]({link})",
-        "color": 0x00ff00,
-        "timestamp": datetime.utcnow().isoformat(),
-        "footer": {"text": category}
-    }
-    if image:
-        embed["image"] = {"url": image}
+async def send_embed(title, link, image, webhook_url, category, entry):
+    is_youtube = "youtube.com/watch" in link or "youtu.be/" in link
 
-    data = {"embeds": [embed]}
+    if is_youtube:
+        # YouTube mode
+        channel_name = entry.get("author", "YouTube")
+        message = f"🎥 New video from **{channel_name}**!\n{link}"
+
+        data = {
+            "content": message
+        }
+
+    else:
+        # Article mode
+        source = urlparse(link).netloc.replace("www.", "")
+        message = f"📰 New article from **{source}**!"
+
+        embed = {
+            "title": title,
+            "url": link,
+            "description": f"[Click to read]({link})",
+            "color": 0x00ff00,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "footer": {"text": category}
+        }
+
+        if image and is_valid_image_url(image):
+            embed["image"] = {"url": image}
+
+        data = {
+            "content": message,
+            "embeds": [embed]
+        }
 
     try:
         async with session.post(webhook_url, json=data) as resp:
@@ -116,6 +207,20 @@ async def rss_checker():
                 published = entry.get("published", "")
                 image = extract_image(entry)
 
+                if not image:
+                    logging.debug(f"[EXTRACT FAILED] Trying OG scrape for: {link}")
+                    image = await fetch_og_image(link)
+
+                if image:
+                    logging.info(f"[IMAGE FOUND] {image}")
+                else:
+                    logging.warning(f"[NO IMAGE FOUND AFTER OG SCRAPE] {link}")
+
+                # Validate image URL before sending to Discord
+                if image and not is_valid_image_url(image):
+                    logging.warning(f"[INVALID IMAGE URL FILTERED OUT] {image}")
+                    image = None
+
                 entry_hash = hash_entry(title, link, published)
                 key = f"{url}::{entry_hash}"
 
@@ -123,11 +228,12 @@ async def rss_checker():
                     continue
 
                 seen.add(key)
-                await queue.put((title, link, image, webhook, category))
+                await queue.put((title, link, image, webhook, category, entry))
 
         save_seen_entries(seen)
         logging.info(f"✅ Cycle complete. Sleeping {CHECK_INTERVAL}s\n")
         await asyncio.sleep(CHECK_INTERVAL)
+
 
 async def main():
     await asyncio.gather(rss_checker(), sender_worker())
