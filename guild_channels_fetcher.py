@@ -2,8 +2,11 @@ import discord
 import json
 import asyncio
 
-BOT_TOKEN = "Bot_Token"
 OUTPUT_FILE = "guild_channels.json"
+BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise ValueError("❌ DISCORD_BOT_TOKEN not set. Use: export DISCORD_BOT_TOKEN='your_token'")
 
 intents = discord.Intents.default()
 intents.guilds = True
