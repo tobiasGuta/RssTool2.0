@@ -36,13 +36,13 @@ Use Environment Variables:
 export Discord="your-token"
 ```
 
+With your actual bot token from the Discord Developer Portal.
+
 ## 🔧 Inside rss.py:
 
 ```bash
 CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can change this
 ```
-
-With your actual bot token from the Discord Developer Portal.
 
 ## ✅ That's It.
 Once the token is set, you can:
