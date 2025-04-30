@@ -61,3 +61,8 @@ Once the token is set, you can:
 - Start both bots with python3 rss.py and python3 slash_control_bot.py
 
 - Run 24/7 via systemd if desired
+
+## Examples:
+
+![image](https://github.com/user-attachments/assets/5f8cfabc-15c6-4c93-bd85-7856a5d14e38)
+
