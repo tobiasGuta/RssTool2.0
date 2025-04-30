@@ -3,9 +3,13 @@ import asyncio
 import json
 import os
 
-BOT_TOKEN = "Bot_Token"
+
 INPUT_FILE = "webhook_request.json"
 OUTPUT_FILE = "webhook_result.json"
+BOT_TOKEN = os.getenv("Discord")
+
+if not BOT_TOKEN:
+    raise ValueError("❌ Discord not set. Use: export Discord='your_token'")
 
 intents = discord.Intents.default()
 intents.guilds = True
