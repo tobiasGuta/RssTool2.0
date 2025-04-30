@@ -30,19 +30,10 @@ RSSBot Elite delivers real-time RSS and YouTube feed notifications across multip
 ## ⚙️ Setup
 - This bot is plug-and-play. The only thing you need to insert manually is your Discord bot token.
 
-## 📌 Step 1: Insert Your Bot Token
-### Open:
-
-- rss.py
-
-- slash_control_bot.py
-
-- create_webhook_runner.py
-
-Replace the placeholder line:
+Use Environment Variables:
 
 ```bash
-BOT_TOKEN = "YOUR_DISCORD_BOT_TOKEN"
+export DISCORD_BOT_TOKEN="your-token"
 ```
 
 ## 🔧 Inside rss.py:
