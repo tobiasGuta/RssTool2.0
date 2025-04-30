@@ -69,6 +69,12 @@ Once the token is set, you can:
 
 ### Discord
 
+- /rss_list 
+
+- /rss_add
+
+- /rss_delete
+
 ![Screenshot 2025-04-30 140458](https://github.com/user-attachments/assets/9313ca2c-d9fe-402d-a9ac-70473400173c)
 
 
