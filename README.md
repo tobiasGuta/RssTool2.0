@@ -45,6 +45,12 @@ Replace the placeholder line:
 BOT_TOKEN = "YOUR_DISCORD_BOT_TOKEN"
 ```
 
+## 🔧 Inside rss.py:
+
+```bash
+CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can change this
+```
+
 With your actual bot token from the Discord Developer Portal.
 
 ## ✅ That's It.
