@@ -70,7 +70,7 @@ Once the token is set, you can:
 
 ![image](https://github.com/user-attachments/assets/dc582e9f-a185-408a-a469-ced0d840ef1b)
 
-### Article
+### Article :newspaper: 
 
 ![image](https://github.com/user-attachments/assets/5046ee90-87b1-44e7-a159-d856be18942d)
 
