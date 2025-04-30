@@ -10,7 +10,7 @@ from urllib.parse import urlparse, parse_qs, urlunparse
 
 CONFIG_FILE = 'feeds_config.json'
 SEEN_FILE = 'seen_entries.txt'
-CHECK_INTERVAL = 125  # change this
+CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can change this
 SEND_INTERVAL = 5
 
 logging.basicConfig(level=logging.INFO)
