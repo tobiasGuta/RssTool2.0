@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RSS Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+  <h1 class="text-4xl font-bold text-center mb-8">📡 RSS Feed Command Center</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
+
+    <!-- Add Feed Form -->
+    <div class="bg-gray-800 p-6 rounded-2xl shadow space-y-5">
+      <h2 class="text-2xl font-semibold">➕ Add New Feed</h2>
+
+      <form method="POST" action="/add" class="space-y-4">
+        <input name="url" placeholder="RSS Feed URL" required
+          class="w-full p-3 rounded bg-gray-700 placeholder-gray-400 text-white" />
+
+        <input name="category" placeholder="Category (e.g. Cyber, CTFs)" required
+          class="w-full p-3 rounded bg-gray-700 placeholder-gray-400 text-white" />
+
+        <select name="guild_id" required
+          class="w-full p-3 rounded bg-gray-700 text-white">
+          <option value="">Select Server</option>
+          {% for gid, g in guilds.items() %}
+            <option value="{{ gid }}">{{ g.guild_name }}</option>
+          {% endfor %}
+        </select>
+
+        <select name="channel_id" required
+          class="w-full p-3 rounded bg-gray-700 text-white">
+          <option value="">Select Channel</option>
+          {% for gid, g in guilds.items() %}
+            {% for chan in g.channels %}
+              <option value="{{ chan[0] }}">{{ chan[1] }}</option>
+            {% endfor %}
+          {% endfor %}
+        </select>
+
+        <button type="submit"
+          class="w-full py-3 rounded bg-blue-600 hover:bg-blue-700 font-bold uppercase">Add Feed</button>
+      </form>
+    </div>
+
+    <!-- Feed List -->
+    <div class="bg-gray-800 p-6 rounded-2xl shadow space-y-5">
+      <h2 class="text-2xl font-semibold">📋 Active Feeds</h2>
+
+      {% if feeds %}
+        <div class="space-y-4">
+          {% for url, cfg in feeds.items() %}
+            <div class="bg-gray-700 p-4 rounded-lg flex justify-between items-center">
+              <div>
+                <div class="text-lg font-bold">{{ cfg.category }}</div>
+                <div class="text-sm text-gray-300 break-all">{{ url }}</div>
+              </div>
+              <form method="POST" action="/delete">
+                <input type="hidden" name="url" value="{{ url }}">
+                <button
+                  class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-semibold">Delete</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-gray-400">No feeds configured yet. Add one using the form.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>
