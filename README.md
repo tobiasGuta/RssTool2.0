@@ -44,6 +44,14 @@ With your actual bot token from the Discord Developer Portal.
 CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can change this
 ```
 
+
+### NOTE:
+There are two versions of this bot:
+- rss.py          → Standard version. Sends feed updates to a single webhook.
+- rss_alerts.py   → Extended version. Lets you define a separate webhook to notify when the tool starts or runs.
+
+If you use rss_alerts.py, make sure to set the SUCCESS_WEBHOOK_URL inside the script.
+
 ## ✅ That's It.
 Once the token is set, you can:
 
