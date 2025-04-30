@@ -4,9 +4,12 @@ from discord import app_commands
 import json
 import os
 
-BOT_TOKEN = "BOT_TOKEN"
 CONFIG_FILE = "feeds_config.json"
 DEFAULT_CATEGORY = "General"
+BOT_TOKEN = os.getenv("Discord")
+
+if not BOT_TOKEN:
+    raise ValueError("❌ Discord not set. Use: export Discord='your_token'")
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
