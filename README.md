@@ -66,6 +66,7 @@ Once the token is set, you can:
 
 - /rss_delete
 
-![Screenshot 2025-04-30 140458](https://github.com/user-attachments/assets/9313ca2c-d9fe-402d-a9ac-70473400173c)
+![image](https://github.com/user-attachments/assets/dc582e9f-a185-408a-a469-ced0d840ef1b)
+
 
 
