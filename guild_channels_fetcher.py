@@ -2,7 +2,7 @@ import discord
 import json
 import asyncio
 
-BOT_TOKEN = "xxxxx"
+BOT_TOKEN = "Bot_Token"
 OUTPUT_FILE = "guild_channels.json"
 
 intents = discord.Intents.default()
