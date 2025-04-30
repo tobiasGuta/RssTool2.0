@@ -67,3 +67,8 @@ Once the token is set, you can:
 
 ![image](https://github.com/user-attachments/assets/5f8cfabc-15c6-4c93-bd85-7856a5d14e38)
 
+### Discord
+
+![Screenshot 2025-04-30 140458](https://github.com/user-attachments/assets/9313ca2c-d9fe-402d-a9ac-70473400173c)
+
+
