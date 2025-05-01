@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 CONFIG_FILE = 'feeds_config.json'
 SEEN_FILE = 'seen_entries.txt'
-CHECK_INTERVAL = 1200  # 20 minutes
+CHECK_INTERVAL = 1200  # seconds
 SEND_INTERVAL = 5
 
 logging.basicConfig(level=logging.INFO)
