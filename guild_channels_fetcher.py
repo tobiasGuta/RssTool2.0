@@ -7,7 +7,6 @@ BOT_TOKEN = os.getenv("Discord")
 
 if not BOT_TOKEN:
     raise ValueError("❌ Discord not set. Use: export Discord='your_token'")
-
 intents = discord.Intents.default()
 intents.guilds = True
 client = discord.Client(intents=intents)
