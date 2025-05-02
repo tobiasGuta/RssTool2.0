@@ -85,6 +85,9 @@ Once the token is set, you can:
 
 ![image](https://github.com/user-attachments/assets/5046ee90-87b1-44e7-a159-d856be18942d)
 
+### Twitch :movie_camera:
+
+![image](https://github.com/user-attachments/assets/d6468a94-2f8a-427f-adbc-9533e4d23418)
 
 
 
