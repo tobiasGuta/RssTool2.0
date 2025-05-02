@@ -68,13 +68,15 @@ Once the token is set, you can:
 
 ### Discord
 
-- /rss_list 
+- /rss_list
 
-- /rss_add
+- /rss_add <url>
 
-- /rss_delete
+- /rss_delete <url>
 
 ### Youtube :movie_camera:
+
+/rss_add url:https://www.youtube.com/feeds/videos.xml?channel_id=<CHANELID>
 
 ![image](https://github.com/user-attachments/assets/dc582e9f-a185-408a-a469-ced0d840ef1b)
 
