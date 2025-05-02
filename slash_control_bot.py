@@ -30,6 +30,7 @@ def find_channel_webhooks(channel: discord.TextChannel):
 @bot.event
 async def on_ready():
     try:
+        await bot.wait_until_ready()
         synced = await bot.tree.sync()
         print(f"[+] Synced {len(synced)} slash commands.")
         print(f"[+] Logged in as {bot.user}")
@@ -39,7 +40,8 @@ async def on_ready():
 # /rss list
 @bot.tree.command(name="rss_list", description="List feeds in this channel")
 async def rss_list(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
+    if not interaction.response.is_done():
+        await interaction.response.defer(ephemeral=True)
     config = load_config()
     feed_count = 0
 
@@ -86,9 +88,10 @@ async def rss_add(interaction: discord.Interaction, url: str):
 @bot.tree.command(name="rss_remove", description="Remove a feed from this channel")
 @app_commands.describe(url="The RSS feed URL to remove")
 async def rss_remove(interaction: discord.Interaction, url: str):
-    await interaction.response.defer(ephemeral=True)
-    config = load_config()
+    if not interaction.response.is_done():
+        await interaction.response.defer(ephemeral=True)
 
+    config = load_config()
     webhooks = await interaction.channel.webhooks()
     channel_whs = [wh.url for wh in webhooks if wh.user == interaction.guild.me]
 
@@ -98,5 +101,74 @@ async def rss_remove(interaction: discord.Interaction, url: str):
         await interaction.followup.send(f"🗑️ Removed feed:\n• `{url}` from {interaction.channel.mention}")
     else:
         await interaction.followup.send("⚠️ Feed not found in this channel.")
+
+@bot.tree.command(name="twitch_add", description="Add a Twitch streamer to monitor in this channel")
+@app_commands.describe(channel="Twitch username (no URL, just the name)")
+async def twitch_add(interaction: discord.Interaction, channel: str):
+    config = load_config()
+
+    try:
+        webhooks = await interaction.channel.webhooks()
+        wh = next((w for w in webhooks if w.user == interaction.guild.me), None)
+
+        if not wh:
+            wh = await interaction.channel.create_webhook(name="RSSBot")
+
+        key = f"twitch:{channel}"
+        config[key] = {
+            "category": "Twitch",
+            "webhook": wh.url
+        }
+
+        save_config(config)
+
+        await interaction.response.send_message(
+            f"✅ Twitch feed added:\n• `{key}` → {interaction.channel.mention}",
+            ephemeral=True
+        )
+
+    except discord.HTTPException as e:
+        print(f"[HTTP ERROR] {e.status} - {e.text}")
+        if not interaction.response.is_done():
+            await interaction.response.send_message("❌ HTTP error occurred.", ephemeral=True)
+
+    except Exception as e:
+        print(f"[FATAL] twitch_add error: {type(e).__name__} - {e}")
+        if not interaction.response.is_done():
+            await interaction.response.send_message("❌ Internal error occurred.", ephemeral=True)
+
+
+@bot.tree.command(name="twitch_list", description="List Twitch feeds in this channel")
+async def twitch_list(interaction: discord.Interaction):
+    config = load_config()
+    webhooks = await interaction.channel.webhooks()
+    channel_whs = [wh.url for wh in webhooks if wh.user == interaction.guild.me]
+
+    msg = ""
+    count = 0
+    for key, entry in config.items():
+        if key.startswith("twitch:") and entry["webhook"] in channel_whs:
+            msg += f"• `{key}`\n"
+            count += 1
+
+    if count == 0:
+        await interaction.response.send_message("📭 No Twitch feeds in this channel.", ephemeral=True)
+    else:
+        await interaction.response.send_message(f"🎮 **Twitch Feeds in {interaction.channel.mention}:**\n{msg}", ephemeral=True)
+
+@bot.tree.command(name="twitch_remove", description="Remove a Twitch feed from this channel")
+@app_commands.describe(channel="Twitch username to remove")
+async def twitch_remove(interaction: discord.Interaction, channel: str):
+    config = load_config()
+    key = f"twitch:{channel}"
+    webhooks = await interaction.channel.webhooks()
+    channel_whs = [wh.url for wh in webhooks if wh.user == interaction.guild.me]
+
+    if key in config and config[key]["webhook"] in channel_whs:
+        del config[key]
+        save_config(config)
+        await interaction.response.send_message(f"🗑️ Removed Twitch feed: `{key}`", ephemeral=True)
+    else:
+        await interaction.response.send_message("⚠️ Twitch feed not found in this channel.", ephemeral=True)
 
 bot.run(BOT_TOKEN)
