@@ -81,7 +81,7 @@ Once the token is set, you can:
 ![image](https://github.com/user-attachments/assets/dc582e9f-a185-408a-a469-ced0d840ef1b)
 
 ### Article :newspaper: 
-/rss_add url:https://www.doingfedtime.com/rss/
+/rss_add url:https://projectdiscovery.io/rss.xml
 
 ![image](https://github.com/user-attachments/assets/5046ee90-87b1-44e7-a159-d856be18942d)
 
