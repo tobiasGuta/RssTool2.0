@@ -76,7 +76,7 @@ Once the token is set, you can:
 
 ### Youtube :movie_camera:
 
-/rss_add url:https://www.youtube.com/feeds/videos.xml?channel_id=<CHANELID>
+/rss_add url:https://www.youtube.com/feeds/videos.xml?channel_id=-CHANELID-
 
 ![image](https://github.com/user-attachments/assets/dc582e9f-a185-408a-a469-ced0d840ef1b)
 
