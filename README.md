@@ -1,5 +1,5 @@
 # RssTool2.0
-RSSBot Elite delivers real-time RSS and YouTube feed notifications across multiple Discord channels, each with custom categories and smart webhook routing.
+RSSBot Elite delivers real-time RSS and YouTube, Twitch feed notifications across multiple Discord channels, each with custom categories and smart webhook routing.
 
 ## 🚀 Key Features
 - Multi-Channel Feed Routing – Assign specific feeds to specific Discord channels using webhooks.
@@ -11,6 +11,8 @@ RSSBot Elite delivers real-time RSS and YouTube feed notifications across multip
 - Smart Webhook Reuse – Automatically detects existing webhooks to avoid clutter.
 
 - YouTube Integration – Add YouTube channel feeds using native RSS and get notified on uploads.
+
+- Twitch Integration - Add Twitch channel and get notified
 
 - Duplicate Prevention – Avoid reposts with hash-based tracking of feed entries.
 
