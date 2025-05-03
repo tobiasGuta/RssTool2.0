@@ -40,7 +40,7 @@ export Discord="your-token"
 
 With your actual bot token from the Discord Developer Portal.
 
-## 🔧 Inside rss.py:
+## 🔧 Inside rss_alerts.py:
 
 ```bash
 CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can change this
@@ -48,8 +48,6 @@ CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can
 
 
 ### NOTE:
-There are two versions of this bot:
-- rss.py          → Standard version. Sends feed updates to a single webhook.
 - rss_alerts.py   → Extended version. Lets you define a separate webhook to notify when the tool starts or runs.
 
 If you use rss_alerts.py, make sure to set the SUCCESS_WEBHOOK_URL inside the script.
@@ -59,7 +57,7 @@ Once the token is set, you can:
 
 - Add feeds via the Web UI or Discord
 
-- Start both bots with python3 rss.py and python3 slash_control_bot.py
+- Start both bots with python3 rss_alerts.py and python3 slash_control_bot.py
 
 - Run 24/7 via systemd if desired
 
@@ -88,7 +86,6 @@ Once the token is set, you can:
 ![image](https://github.com/user-attachments/assets/5046ee90-87b1-44e7-a159-d856be18942d)
 
 ### Twitch :movie_camera:
-Note: Twitch notifications are only available in rss_alerts.py version
 
 - /twitch_add <username>
 
