@@ -200,7 +200,7 @@ async def rss_list(interaction: discord.Interaction):
     if feed_count == 0:
         await interaction.followup.send("📭 No feeds configured in this channel.")
     else:
-        await interaction.followup.send(f"📡 **Feeds in {interaction.channel.mention}:**\n{msg}")
+        await send_long_message(interaction, f"📡 **Feeds in {interaction.channel.mention}:**\n{msg}")
 
 async def search_youtube_channels_no_browser_async(query, max_results=5):
     query = query.replace(' ', '+')
