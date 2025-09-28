@@ -1,7 +1,7 @@
 # RssTool2.0
 RSSBot Elite delivers real-time RSS and YouTube, Twitch feed notifications across multiple Discord channels, each with custom categories and smart webhook routing.
 
-## 🚀 Key Features
+## Key Features
 - Multi-Channel Feed Routing – Assign specific feeds to specific Discord channels using webhooks.
 
 - Web UI Dashboard – Add, view, and remove feeds from a clean Tailwind-powered interface.
@@ -20,7 +20,7 @@ RSSBot Elite delivers real-time RSS and YouTube, Twitch feed notifications acros
 
 - Systemd Ready – Built to run 24/7 on a VPS with background service support.
 
-## 🛠️ Example Use Case
+## Example Use Case
 - Push CTF writeups to #ctf
 
 - Send vuln news to #cyber-news
@@ -29,7 +29,7 @@ RSSBot Elite delivers real-time RSS and YouTube, Twitch feed notifications acros
 
 - Control feeds with Discord slash commands 
 
-## ⚙️ Setup
+## Setup
 - This bot is plug-and-play. The only thing you need to insert manually is your Discord bot token.
 
 Use Environment Variables:
@@ -40,10 +40,10 @@ export Discord="your-token"
 
 With your actual bot token from the Discord Developer Portal.
 
-## 🔧 Inside rss_alerts.py:
+## Inside rss_alerts.py:
 
 ```bash
-CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can change this
+CHECK_INTERVAL = 125  #  How often to check feeds (in seconds) – you can change this
 ```
 
 
@@ -52,7 +52,7 @@ CHECK_INTERVAL = 125  # ⏱️ How often to check feeds (in seconds) – you can
 
 If you use rss_alerts.py, make sure to set the SUCCESS_WEBHOOK_URL inside the script.
 
-## ✅ That's It.
+## That's It.
 Once the token is set, you can:
 
 - Add feeds via the Web UI or Discord
