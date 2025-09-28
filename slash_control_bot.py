@@ -13,7 +13,7 @@ CONFIG_FILE = "feeds_config.json"
 DEFAULT_CATEGORY = "General"
 BOT_TOKEN = os.getenv("Discord")
 if not BOT_TOKEN:
-    raise ValueError("❌ Discord token not set. Use: export Discord='your_token'")
+    raise ValueError(" Discord token not set. Use: export Discord='your_token'")
 
 MAX_LEN = 1900
 
@@ -31,7 +31,7 @@ def resolve_youtube_feed_url(handle_or_url):
             if "youtube.com/feeds/videos.xml?channel_id=" in handle_or_url:
                 return handle_or_url
             # Otherwise fail
-            raise ValueError("❌ Input isn't a valid handle or feed URL")
+            raise ValueError(" Input isn't a valid handle or feed URL")
 
     # Query the YouTube search page filtered to channels only
     search_url = f"https://www.youtube.com/results?search_query={handle}"  # channels only filter
@@ -41,7 +41,7 @@ def resolve_youtube_feed_url(handle_or_url):
     }
     res = requests.get(search_url, headers=headers, timeout=8)
     if res.status_code != 200:
-        raise ValueError(f"❌ YouTube search page request failed with status {res.status_code}")
+        raise ValueError(f" YouTube search page request failed with status {res.status_code}")
 
     html = res.text
 
@@ -51,14 +51,14 @@ def resolve_youtube_feed_url(handle_or_url):
         # Sometimes ytInitialData ends with '};' instead of '};</script>'
         initial_data_match = re.search(r"ytInitialData\s*=\s*({.*?});", html, re.DOTALL)
         if not initial_data_match:
-            raise ValueError("❌ Couldn't find ytInitialData JSON in search page")
+            raise ValueError(" Couldn't find ytInitialData JSON in search page")
 
     yt_initial_data = initial_data_match.group(1)
 
     try:
         data = json.loads(yt_initial_data)
     except json.JSONDecodeError as e:
-        raise ValueError(f"❌ Failed to parse ytInitialData JSON: {e}")
+        raise ValueError(f" Failed to parse ytInitialData JSON: {e}")
 
     # Navigate through the JSON to find the channelId of the first channel matching the handle
     try:
@@ -87,9 +87,9 @@ def resolve_youtube_feed_url(handle_or_url):
                     return f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 
     except Exception as e:
-        raise ValueError(f"❌ Error parsing channels: {e}")
+        raise ValueError(f" Error parsing channels: {e}")
 
-    raise ValueError("❌ No YouTube channel found for that handle")
+    raise ValueError(" No YouTube channel found for that handle")
 
 
 class ChannelSelect(Select):
@@ -165,14 +165,14 @@ class ConfirmAddView(View):
         self.channel_name = channel_name
         self.on_confirm = on_confirm
 
-    @discord.ui.button(label="✅ Confirm", style=discord.ButtonStyle.green, custom_id="confirm")
+    @discord.ui.button(label=" Confirm", style=discord.ButtonStyle.green, custom_id="confirm")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.on_confirm(interaction, self.url, self.channel_name)
         self.stop()
 
-    @discord.ui.button(label="❌ Cancel", style=discord.ButtonStyle.red, custom_id="cancel")
+    @discord.ui.button(label=" Cancel", style=discord.ButtonStyle.red, custom_id="cancel")
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(content="❌ Cancelled.", embed=None, view=None)
+        await interaction.response.edit_message(content=" Cancelled.", embed=None, view=None)
         self.stop()
 
 # /rss_list command: lists feeds in this channel
@@ -198,7 +198,7 @@ async def rss_list(interaction: discord.Interaction):
             feed_count += 1
 
     if feed_count == 0:
-        await interaction.followup.send("📭 No feeds configured in this channel.")
+        await interaction.followup.send(" No feeds configured in this channel.")
     else:
         await send_long_message(interaction, f"📡 **Feeds in {interaction.channel.mention}:**\n{msg}")
 
@@ -221,7 +221,7 @@ async def search_youtube_channels_no_browser_async(query, max_results=5):
     try:
         html = await loop.run_in_executor(None, fetch)
     except Exception as e:
-        raise ValueError(f"❌ YouTube request error: {e}")
+        raise ValueError(f" YouTube request error: {e}")
 
     try:
         import json, re
@@ -229,12 +229,12 @@ async def search_youtube_channels_no_browser_async(query, max_results=5):
         if not initial_data_match:
             initial_data_match = re.search(r'window\["ytInitialData"\] = ({.*?});', html, re.DOTALL)
         if not initial_data_match:
-            raise ValueError("❌ Could not find ytInitialData JSON on page")
+            raise ValueError(" Could not find ytInitialData JSON on page")
 
         initial_data = initial_data_match.group(1)
         data = json.loads(initial_data)
     except Exception as e:
-        raise ValueError(f"❌ Failed to extract initial data: {e}")
+        raise ValueError(f" Failed to extract initial data: {e}")
 
     channels = []
 
@@ -285,7 +285,7 @@ async def search_youtube_channels_no_browser_async(query, max_results=5):
                 break
 
     except Exception as e:
-        raise ValueError(f"❌ Failed parsing channels JSON: {e}")
+        raise ValueError(f" Failed parsing channels JSON: {e}")
 
     return channels
 
@@ -303,7 +303,7 @@ async def rss_add(interaction: discord.Interaction, url: str):
         try:
             channels = await search_youtube_channels_no_browser_async(query)
             if not channels:
-                await interaction.followup.send("❌ No YouTube channels found with that handle or name.")
+                await interaction.followup.send(" No YouTube channels found with that handle or name.")
                 return
 
             async def on_channel_selected(inter, selected_url):
@@ -321,7 +321,7 @@ async def rss_add(interaction: discord.Interaction, url: str):
                 }
                 save_config(config)
 
-                await inter.response.edit_message(content=f"✅ Added YouTube feed: **{channel_name}**\n→ `{selected_url}`", view=None, embed=None)
+                await inter.response.edit_message(content=f" Added YouTube feed: **{channel_name}**\n→ `{selected_url}`", view=None, embed=None)
 
             # Build ChannelSelectView options from new data:
             options = []
@@ -333,7 +333,7 @@ async def rss_add(interaction: discord.Interaction, url: str):
             await interaction.followup.send("Select the YouTube channel you want to add:", view=view)
 
         except Exception as e:
-            await interaction.followup.send(f"❌ Could not resolve YouTube channel: {e}")
+            await interaction.followup.send(f" Could not resolve YouTube channel: {e}")
         return
 
     # Existing RSS handling code remains...
@@ -347,7 +347,7 @@ async def rss_add(interaction: discord.Interaction, url: str):
         "webhook": wh.url
     }
     save_config(config)
-    await interaction.followup.send(f"✅ Added RSS feed:\n→ `{url}`")
+    await interaction.followup.send(f" Added RSS feed:\n→ `{url}`")
 
 
 # /rss_remove command: remove a feed by URL
@@ -363,9 +363,9 @@ async def rss_remove(interaction: discord.Interaction, url: str):
     if url in config and config[url]["webhook"] in channel_whs:
         del config[url]
         save_config(config)
-        await interaction.followup.send(f"🗑️ Removed feed:\n• `{url}` from {interaction.channel.mention}")
+        await interaction.followup.send(f" Removed feed:\n• `{url}` from {interaction.channel.mention}")
     else:
-        await interaction.followup.send("⚠️ Feed not found in this channel.")
+        await interaction.followup.send(" Feed not found in this channel.")
 
 # Twitch commands
 
@@ -388,19 +388,19 @@ async def twitch_add(interaction: discord.Interaction, channel: str):
         save_config(config)
 
         await interaction.response.send_message(
-            f"✅ Twitch feed added:\n• `{key}` → {interaction.channel.mention}",
+            f" Twitch feed added:\n• `{key}` → {interaction.channel.mention}",
             ephemeral=True
         )
 
     except discord.HTTPException as e:
         print(f"[HTTP ERROR] {e.status} - {e.text}")
         if not interaction.response.is_done():
-            await interaction.response.send_message("❌ HTTP error occurred.", ephemeral=True)
+            await interaction.response.send_message(" HTTP error occurred.", ephemeral=True)
 
     except Exception as e:
         print(f"[FATAL] twitch_add error: {type(e).__name__} - {e}")
         if not interaction.response.is_done():
-            await interaction.response.send_message("❌ Internal error occurred.", ephemeral=True)
+            await interaction.response.send_message(" Internal error occurred.", ephemeral=True)
 
 @bot.tree.command(name="twitch_list", description="List Twitch feeds in this channel")
 async def twitch_list(interaction: discord.Interaction):
@@ -416,9 +416,9 @@ async def twitch_list(interaction: discord.Interaction):
             count += 1
 
     if count == 0:
-        await interaction.response.send_message("📭 No Twitch feeds in this channel.", ephemeral=True)
+        await interaction.response.send_message(" No Twitch feeds in this channel.", ephemeral=True)
     else:
-        await interaction.response.send_message(f"🎮 **Twitch Feeds in {interaction.channel.mention}:**\n{msg}", ephemeral=True)
+        await interaction.response.send_message(f" **Twitch Feeds in {interaction.channel.mention}:**\n{msg}", ephemeral=True)
 
 @bot.tree.command(name="twitch_remove", description="Remove a Twitch feed from this channel")
 @app_commands.describe(channel="Twitch username to remove")
@@ -431,8 +431,8 @@ async def twitch_remove(interaction: discord.Interaction, channel: str):
     if key in config and config[key]["webhook"] in channel_whs:
         del config[key]
         save_config(config)
-        await interaction.response.send_message(f"🗑️ Removed Twitch feed: `{key}`", ephemeral=True)
+        await interaction.response.send_message(f" Removed Twitch feed: `{key}`", ephemeral=True)
     else:
-        await interaction.response.send_message("⚠️ Twitch feed not found in this channel.", ephemeral=True)
+        await interaction.response.send_message(" Twitch feed not found in this channel.", ephemeral=True)
 
 bot.run(BOT_TOKEN)
