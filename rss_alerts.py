@@ -30,11 +30,11 @@ async def send_discord_notification(message):
             async with session.post(DISCORD_WEBHOOK_URL, json=payload) as resp:
                 text = await resp.text()
                 if resp.status == 204:
-                    logging.info("✅ Notification sent successfully.")
+                    logging.info("Notification sent successfully.")
                 else:
-                    logging.error(f"❌ Failed to send notification ({resp.status}): {text}")
+                    logging.error(f"Failed to send notification ({resp.status}): {text}")
         except Exception as e:
-            logging.error(f"⚠️ Error sending notification: {type(e).__name__} - {e}")
+            logging.error(f"Error sending notification: {type(e).__name__} - {e}")
 
 def is_valid_image_url(url):
     return url and url.startswith("http") and url.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
@@ -150,20 +150,20 @@ async def fetch_rss_content(url):
             if resp.status == 200:
                 return await resp.text()
             else:
-                logging.warning(f"⚠️ Failed to fetch RSS from {url} (status {resp.status})")
+                logging.warning(f"Failed to fetch RSS from {url} (status {resp.status})")
     except Exception as e:
-        logging.error(f"❌ Error fetching RSS feed from {url}: {type(e).__name__} - {e}")
+        logging.error(f"Error fetching RSS feed from {url}: {type(e).__name__} - {e}")
     return ""
 
 async def send_embed(title, link, image, webhook_url, category, entry):
     is_youtube = "youtube.com/watch" in link or "youtu.be/" in link
     if is_youtube:
         channel_name = entry.get("author", "YouTube")
-        message = f"🎥 New video from **{channel_name}**!\n{link}"
+        message = f"New video from **{channel_name}**!\n{link}"
         data = {"content": message}
     else:
         source = urlparse(link).netloc.replace("www.", "")
-        message = f"📰 New article from **{source}**!"
+        message = f"New article from **{source}**!"
         embed = {
             "title": title,
             "url": link,
@@ -178,9 +178,9 @@ async def send_embed(title, link, image, webhook_url, category, entry):
     try:
         async with session.post(webhook_url, json=data) as resp:
             if resp.status == 204:
-                logging.info(f"✅ Sent: {title}")
+                logging.info(f"Sent: {title}")
             else:
-                logging.warning(f"❌ Failed to send ({resp.status})")
+                logging.warning(f"Failed to send ({resp.status})")
     except Exception as e:
         logging.error(f"[ERROR] {e}")
 
@@ -195,8 +195,8 @@ async def rss_checker():
     seen = load_seen_entries()
     while True:
         feeds = load_config()
-        logging.info("🔁 Checking feeds...")
-        await send_discord_notification("🔁 RSS Bot is checking feeds now...")
+        logging.info("Checking feeds...")
+        await send_discord_notification("RSS Bot is checking feeds now...")
         for url, config in feeds.items():
             if url.startswith("twitch:"):
                 continue
@@ -224,7 +224,7 @@ async def rss_checker():
                 seen.add(key)
                 await queue.put((title, link, image, webhook, category, entry))
         save_seen_entries(seen)
-        logging.info(f"✅ Cycle complete. Sleeping {CHECK_INTERVAL}s\n")
+        logging.info(f"Cycle complete. Sleeping {CHECK_INTERVAL}s\n")
         await asyncio.sleep(CHECK_INTERVAL)
 
 async def twitch_checker():
@@ -290,21 +290,21 @@ async def send_twitch_alert(channel, webhook):
         embed = {
             "url": stream_url,
             "color": 0x9146FF,
-            "description": f"🔴 **[{channel} is now streaming!]({stream_url})**",
+            "description": f" **[{channel} is now streaming!]({stream_url})**",
             "author": {
                 "name": channel,
                 "url": stream_url,
                 "icon_url": avatar
             },
             "fields": [
-                {"name": "🎮 Game", "value": game or "Unknown", "inline": True},
-                {"name": "👀 Viewers", "value": viewers or "0", "inline": True},
-                {"name": "📝 Title", "value": status or "No title", "inline": False},
-                {"name": "⏱️ Uptime", "value": uptime or "Just started", "inline": True}
+                {"name": " Game", "value": game or "Unknown", "inline": True},
+                {"name": " Viewers", "value": viewers or "0", "inline": True},
+                {"name": " Title", "value": status or "No title", "inline": False},
+                {"name": " Uptime", "value": uptime or "Just started", "inline": True}
             ],
             "image": {"url": thumbnail_url},
             "footer": {
-                "text": "🔔 Twitch Stream Monitor",
+                "text": " Twitch Stream Monitor",
                 "icon_url": "https://cdn.icon-icons.com/icons2/2429/PNG/512/twitch_logo_icon_147272.png"
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
@@ -312,10 +312,10 @@ async def send_twitch_alert(channel, webhook):
         payload = {"embeds": [embed]}
         async with session.post(webhook, json=payload) as resp:
             if resp.status == 204:
-                logging.info(f"✅ Twitch alert sent: {channel}")
+                logging.info(f" Twitch alert sent: {channel}")
                 return True
             else:
-                logging.warning(f"❌ Failed Twitch alert ({resp.status})")
+                logging.warning(f" Failed Twitch alert ({resp.status})")
     except Exception as e:
         logging.error(f"[Twitch Alert ERROR] {channel}: {e}")
     return False
@@ -324,7 +324,7 @@ async def main():
     await asyncio.gather(rss_checker(), sender_worker(), twitch_checker())
 
 async def full_start():
-    await send_discord_notification("✅ RSS Bot is starting up.")
+    await send_discord_notification(" RSS Bot is starting up.")
     await main()
 
 if __name__ == "__main__":
