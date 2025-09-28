@@ -9,7 +9,7 @@ OUTPUT_FILE = "webhook_result.json"
 BOT_TOKEN = os.getenv("Discord")
 
 if not BOT_TOKEN:
-    raise ValueError("❌ Discord not set. Use: export Discord='your_token'")
+    raise ValueError(" Discord not set. Use: export Discord='your_token'")
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -43,7 +43,7 @@ class WebhookBot(discord.Client):
                 await self.http._HTTPClient__session.close()
                 return
 
-            # 🔍 Check for existing webhook
+            
             existing_webhooks = await channel.webhooks()
             for webhook in existing_webhooks:
                 if webhook.name == name:
@@ -51,13 +51,13 @@ class WebhookBot(discord.Client):
                     print(f"[+] Found existing webhook: {self.result}")
                     break
 
-            # 🆕 If no existing webhook found, create a new one
+           
             if not self.result:
                 webhook = await channel.create_webhook(name=name)
                 self.result = webhook.url
                 print(f"[+] Created new webhook: {self.result}")
 
-            # 💾 Write result
+            
             with open(OUTPUT_FILE, 'w') as f:
                 json.dump({"webhook_url": self.result}, f)
 
