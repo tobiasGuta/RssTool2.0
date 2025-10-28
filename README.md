@@ -43,9 +43,9 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-- This bot is plug-and-play. The only thing you need to insert manually is your Discord bot token.
-
 - Visit https://discord.com/developers/docs/intro
+
+- You need to create your own bot. You can use this as a guide: https://www.codedex.io/projects/build-a-discord-bot-with-python
 
 Use Environment Variables:
 
@@ -53,7 +53,7 @@ Use Environment Variables:
 export Discord="your-token"
 ```
 
-With your actual bot token from the Discord Developer Portal.
+**Note**: With your actual bot token from the Discord Developer Portal.
 
 ## Inside rss_alerts.py:
 
