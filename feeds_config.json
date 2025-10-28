@@ -1,0 +1,6 @@
+{
+    "twitch:cinna": {
+        "category": "Twitch",
+        "webhook": "https://discord.com/api/webhooks/xxxxxxxxx"
+    }
+}
