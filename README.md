@@ -47,6 +47,18 @@ pip3 install -r requirements.txt
 
 - You need to create your own bot. You can use this as a guide: https://www.codedex.io/projects/build-a-discord-bot-with-python
 
+- Permission for the bot to work properly:
+
+-   **View Channels** -> so it can see the channel.
+
+    -   **Send Messages** -> to post updates via webhooks.
+
+    -   **Embed Links** -> your bot sends rich messages.
+
+    -   **Manage Webhooks** -> this is the most critical one. Your bot dynamically creates webhooks per channel (`await inter.channel.create_webhook(name="RSSBot")`) and posts messages through them. Missing this permission is why you're getting HTTP 403.
+ 
+    -   **Use Slash Commands** → already required since your bot uses `@bot.tree.command`.
+
 Use Environment Variables:
 
 ```bash
