@@ -30,7 +30,22 @@ RSSBot Elite delivers real-time RSS and YouTube, Twitch feed notifications acros
 - Control feeds with Discord slash commands 
 
 ## Setup
+
+```bash
+python3 -m venv venv
+```
+
+```bash
+source venv/bin/activate
+```
+
+```bash
+pip3 install -r requirements.txt
+```
+
 - This bot is plug-and-play. The only thing you need to insert manually is your Discord bot token.
+
+- Visit https://discord.com/developers/docs/intro
 
 Use Environment Variables:
 
