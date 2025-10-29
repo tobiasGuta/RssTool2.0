@@ -85,6 +85,8 @@ Once the token is set, you can:
 ## Examples:
 ### Web
 
+**Note**: Web can only add normal feeds and YouTube; no Twitch at the moment.
+
 ![image](https://github.com/user-attachments/assets/5f8cfabc-15c6-4c93-bd85-7856a5d14e38)
 
 ### Discord
