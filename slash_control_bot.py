@@ -7,13 +7,15 @@ import re
 import requests
 from discord.ui import Select, View, Button
 import asyncio
+from dotenv import load_dotenv
 
+load_dotenv()
 
 CONFIG_FILE = "feeds_config.json"
 DEFAULT_CATEGORY = "General"
-BOT_TOKEN = os.getenv("Discord")
+BOT_TOKEN = os.getenv("DISCORD_TOKEN") or os.getenv("Discord")
 if not BOT_TOKEN:
-    raise ValueError(" Discord token not set. Use: export Discord='your_token'")
+    raise ValueError(" Discord token not set. Please set DISCORD_TOKEN in .env file")
 
 MAX_LEN = 1900
 
@@ -125,6 +127,7 @@ def get_youtube_channel_name(channel_id):
         return "YouTube Channel"
 
 intents = discord.Intents.default()
+intents.guilds = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 def load_config():
@@ -139,11 +142,11 @@ def save_config(config):
 
 @bot.event
 async def on_ready():
+    print(f"[+] Logged in as {bot.user} (ID: {bot.user.id})")
+
     try:
-        await bot.wait_until_ready()
         synced = await bot.tree.sync()
         print(f"[+] Synced {len(synced)} slash commands.")
-        print(f"[+] Logged in as {bot.user}")
     except Exception as e:
         print(f"[ERROR] Sync failed: {e}")
 

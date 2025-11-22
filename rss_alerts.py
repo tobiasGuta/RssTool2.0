@@ -6,13 +6,18 @@ import asyncio
 import logging
 import re
 import time
+import os
 from datetime import datetime, timezone
-from urllib.parse import urlparse, parse_qs, urlunparse
+from urllib.parse import urlparse, parse_qs, urlunparse, urljoin
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+load_dotenv()
 
 CONFIG_FILE = 'feeds_config.json'
 SEEN_FILE = 'seen_entries.txt'
-CHECK_INTERVAL = 1200
+RSS_CHECK_INTERVAL = 300   # 5 minutes for RSS
+TWITCH_CHECK_INTERVAL = 120  # 2 minutes for Twitch
 SEND_INTERVAL = 5
 twitch_last_live = {}
 
@@ -21,9 +26,14 @@ sent_articles = set()
 queue = asyncio.Queue()
 session = None
 
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/xxxxx"
+# Optional: System notifications webhook
+DISCORD_WEBHOOK_URL = os.getenv("SYSTEM_WEBHOOK_URL")
 
 async def send_discord_notification(message):
+    if not DISCORD_WEBHOOK_URL:
+        logging.info(f"[System Notification] {message}")
+        return
+
     async with aiohttp.ClientSession() as session:
         payload = {"content": message}
         try:
@@ -37,7 +47,17 @@ async def send_discord_notification(message):
             logging.error(f"Error sending notification: {type(e).__name__} - {e}")
 
 def is_valid_image_url(url):
-    return url and url.startswith("http") and url.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
+    # Relaxed check: just ensure it's a http URL. Discord handles the rest.
+    return url and url.startswith("http")
+
+def clean_html(raw_html):
+    if not raw_html:
+        return ""
+    try:
+        soup = BeautifulSoup(raw_html, "html.parser")
+        return soup.get_text(separator=" ").strip()
+    except Exception:
+        return raw_html
 
 def load_config():
     with open(CONFIG_FILE) as f:
@@ -93,35 +113,58 @@ def extract_image(entry):
 async def fetch_og_image(url):
     try:
         await create_session()
-        headers = {"User-Agent": "Mozilla/5.0"}
-        async with session.get(url, headers=headers, timeout=6) as resp:
+        # Use a realistic browser header to avoid being blocked
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        }
+        async with session.get(url, headers=headers, timeout=10) as resp:
+            if resp.status != 200:
+                logging.warning(f"[IMAGE FETCH FAILED] Status {resp.status} for {url}")
+                return None
+                
             html = await resp.text()
             soup = BeautifulSoup(html, "html.parser")
+            
+            # Try og:image
             og_tag = soup.find("meta", attrs={"property": "og:image"})
-            if og_tag and is_valid_image_url(og_tag.get("content", "")):
-                return og_tag.get("content")
+            if og_tag:
+                img_url = og_tag.get("content", "")
+                if img_url:
+                    return urljoin(url, img_url)
+            
+            # Try twitter:image
             twitter_tag = soup.find("meta", attrs={"name": "twitter:image"})
-            if twitter_tag and is_valid_image_url(twitter_tag.get("content", "")):
-                return twitter_tag.get("content")
+            if twitter_tag:
+                img_url = twitter_tag.get("content", "")
+                if img_url:
+                    return urljoin(url, img_url)
+            
+            # Try first article image
             article = soup.find("article")
             if article:
                 img = article.find("img")
-                if img and is_valid_image_url(img.get("src", "")):
-                    return img.get("src")
+                if img and img.get("src"):
+                    return urljoin(url, img.get("src"))
+                    
+            # Fallback to any image
             img = soup.find("img")
-            if img and is_valid_image_url(img.get("src", "")):
-                return img.get("src")
+            if img and img.get("src"):
+                return urljoin(url, img.get("src"))
+                
     except Exception as e:
         logging.warning(f"[IMAGE FETCH FAILED] {url} :: {type(e).__name__} - {e}")
     return None
 
-def is_today(entry):
+def is_recent(entry):
     published = entry.get("published_parsed")
     if not published:
         return False
-    entry_date = datetime(*published[:6], tzinfo=timezone.utc).date()
-    today_date = datetime.now(timezone.utc).date()
-    return entry_date == today_date
+    # Convert struct_time to datetime
+    entry_dt = datetime(*published[:6], tzinfo=timezone.utc)
+    now_dt = datetime.now(timezone.utc)
+    # Check if within last 24 hours (86400 seconds)
+    return (now_dt - entry_dt).total_seconds() < 86400
 
 async def create_session():
     global session
@@ -164,10 +207,25 @@ async def send_embed(title, link, image, webhook_url, category, entry):
     else:
         source = urlparse(link).netloc.replace("www.", "")
         message = f"New article from **{source}**!"
+        
+        # Extract and clean description
+        raw_desc = entry.get("summary", "") or entry.get("description", "")
+        clean_desc = clean_html(raw_desc)
+        
+        # Truncate if too long (limit to 280 chars)
+        if len(clean_desc) > 280:
+            clean_desc = clean_desc[:277] + "..."
+            
+        # Add read more link
+        if clean_desc:
+            final_desc = f"{clean_desc}\n\n[Read full article]({link})"
+        else:
+            final_desc = f"[Click to read article]({link})"
+
         embed = {
             "title": title,
             "url": link,
-            "description": f"[Click to read]({link})",
+            "description": final_desc,
             "color": 0x00ff00,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "footer": {"text": category}
@@ -204,11 +262,14 @@ async def rss_checker():
             category = config.get("category", "RSS")
             feed_content = await fetch_rss_content(url)
             parsed = feedparser.parse(feed_content)
-            entries_today = [e for e in parsed.entries if is_today(e)]
-            if not entries_today:
-                logging.info(f"[{url}] No new entries published today.")
+            # Filter for entries from the last 24 hours
+            entries_recent = [e for e in parsed.entries if is_recent(e)]
+            
+            if not entries_recent:
+                logging.info(f"[{url}] No recent entries (last 24h).")
                 continue
-            for entry in entries_today[:15]:
+                
+            for entry in entries_recent[:5]: # Limit to 5 to avoid spamming on startup
                 title = entry.get("title", "No Title")
                 link = sanitize_url(entry.get("link", ""))
                 published = entry.get("published", "")
@@ -224,8 +285,8 @@ async def rss_checker():
                 seen.add(key)
                 await queue.put((title, link, image, webhook, category, entry))
         save_seen_entries(seen)
-        logging.info(f"Cycle complete. Sleeping {CHECK_INTERVAL}s\n")
-        await asyncio.sleep(CHECK_INTERVAL)
+        logging.info(f"Cycle complete. Sleeping {RSS_CHECK_INTERVAL}s\n")
+        await asyncio.sleep(RSS_CHECK_INTERVAL)
 
 async def twitch_checker():
     global twitch_last_live
@@ -237,19 +298,28 @@ async def twitch_checker():
         for twitch_key, config in twitch_feeds.items():
             channel = twitch_key.split("twitch:")[1]
             webhook = config["webhook"]
-            logging.info(f"[Twitch] Checking live status for: {channel}")
+            # logging.info(f"[Twitch] Checking live status for: {channel}")
             try:
                 uptime = await twitch_check_uptime(channel)
+                
+                if "not found" in uptime.lower():
+                    logging.warning(f"[Twitch] Channel not found: {channel}")
+                    continue
+
                 is_live = "offline" not in uptime.lower()
+                
                 if is_live and not twitch_last_live.get(channel, False):
+                    logging.info(f"[Twitch] {channel} is LIVE! Sending alert...")
                     sent = await send_twitch_alert(channel, webhook)
                     if sent:
                         twitch_last_live[channel] = True
                 elif not is_live:
+                    if twitch_last_live.get(channel, False):
+                        logging.info(f"[Twitch] {channel} went offline.")
                     twitch_last_live[channel] = False
             except Exception as e:
                 logging.error(f"[Twitch Check ERROR] {channel}: {e}")
-        await asyncio.sleep(CHECK_INTERVAL)
+        await asyncio.sleep(TWITCH_CHECK_INTERVAL)
 
 async def twitch_check_uptime(channel):
     url = f"https://decapi.me/twitch/uptime/{channel}"

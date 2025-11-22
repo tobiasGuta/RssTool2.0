@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Runtime Data
+feeds_config.json
+seen_entries.txt
+guild_channels.json
+
+# Temporary/Leftover files
+webhook_request.json
+webhook_result.json
