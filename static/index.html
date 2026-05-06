@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RssTool2.0 Dashboard</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3350;--accent:#00ff99;--accent2:#7c6aff;--red:#ff4d6d;--yellow:#ffd60a;--text:#e8eaf0;--muted:#7b8099;--radius:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+.shell{display:flex;min-height:100vh;}
+nav{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);}
+.logo h1{font-size:18px;font-weight:700;color:var(--accent);}
+.logo p{font-size:11px;color:var(--muted);margin-top:2px;}
+.nav-links{padding:16px 0;flex:1;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;border-left:3px solid transparent;transition:background .15s,color .15s;}
+.nav-link:hover{color:var(--text);background:var(--surface2);}
+.nav-link.active{color:var(--accent);background:var(--surface2);border-left-color:var(--accent);}
+.nav-link .icon{font-size:16px;}
+main{flex:1;padding:32px;overflow-y:auto;}
+h2{font-size:22px;font-weight:700;margin-bottom:20px;}
+.section{display:none;}.section.active{display:block;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.stat-card .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.stat-card .value{font-size:32px;font-weight:700;margin-top:6px;color:var(--accent);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.card-header h3{font-size:15px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--surface2);padding:10px 16px;text-align:left;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+td{padding:12px 16px;border-top:1px solid var(--border);font-size:13px;vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,.03);}
+.url-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace;font-size:12px;color:var(--muted);}
+.empty-row td{text-align:center;color:var(--muted);padding:32px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;}
+.badge-green{background:rgba(0,255,153,.15);color:var(--accent);}
+.badge-purple{background:rgba(124,106,255,.2);color:var(--accent2);}
+.badge-red{background:rgba(255,77,109,.15);color:var(--red);}
+.badge-muted{background:var(--surface2);color:var(--muted);}
+.btn{padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:opacity .15s;}
+.btn:hover{opacity:.8;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-muted{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;}
+.form-card h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+label{font-size:12px;color:var(--muted);font-weight:500;}
+input,select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:13px;outline:none;width:100%;transition:border-color .15s;}
+input:focus,select:focus{border-color:var(--accent);}
+input::placeholder{color:var(--muted);}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 20px;font-size:13px;display:none;box-shadow:0 4px 24px rgba(0,0,0,.4);}
+#toast.show{display:block;}
+#toast.ok{border-color:var(--accent);color:var(--accent);}
+#toast.err{border-color:var(--red);color:var(--red);}
+.action-row{display:flex;gap:6px;flex-wrap:wrap;}
+.art-img{width:48px;height:34px;object-fit:cover;border-radius:6px;background:var(--surface2);}
+.fail-bar{width:80px;height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;}
+.fail-bar-fill{height:100%;border-radius:3px;}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0;z-index:100;}
+.mobile-nav-inner{display:flex;justify-content:space-around;}
+.mobile-nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 12px;color:var(--muted);font-size:11px;}
+.mobile-nav-btn.active{color:var(--accent);}
+.mobile-nav-btn .icon{font-size:20px;}
+@media(max-width:700px){
+  nav{display:none;}
+  main{padding:16px;padding-bottom:80px;}
+  .form-row{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .mobile-nav{display:block;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav>
+    <div class="logo"><h1>📡 RssTool</h1><p>v2.0 Dashboard</p></div>
+    <div class="nav-links">
+      <div class="nav-link active" onclick="show('overview')" data-section="overview"><span class="icon">🏠</span> Overview</div>
+      <div class="nav-link" onclick="show('feeds')" data-section="feeds"><span class="icon">📰</span> Feeds</div>
+      <div class="nav-link" onclick="show('add')" data-section="add"><span class="icon">➕</span> Add Feed</div>
+      <div class="nav-link" onclick="show('articles')" data-section="articles"><span class="icon">📋</span> Articles</div>
+      <div class="nav-link" onclick="show('health')" data-section="health"><span class="icon">❤️</span> Health</div>
+    </div>
+  </nav>
+  <main>
+    <div id="sec-overview" class="section active">
+      <h2>Overview</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Total Feeds</div><div class="value" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="label">Active Feeds</div><div class="value" id="stat-active">—</div></div>
+        <div class="stat-card"><div class="label">Articles Sent</div><div class="value" id="stat-articles">—</div></div>
+        <div class="stat-card"><div class="label">Last Article</div><div class="value" style="font-size:14px;margin-top:10px" id="stat-last">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Recent Articles</h3></div>
+        <table><thead><tr><th>Image</th><th>Title</th><th>Category</th><th>Sent</th></tr></thead>
+        <tbody id="overview-articles"></tbody></table>
+      </div>
+    </div>
+    <div id="sec-feeds" class="section">
+      <h2>All Feeds</h2>
+      <div class="card">
+        <div class="card-header"><h3 id="feeds-count">Feeds</h3><button class="btn btn-primary" onclick="show('add')">+ Add Feed</button></div>
+        <table><thead><tr><th>Status</th><th>URL</th><th>Category</th><th>Keywords</th><th>Actions</th></tr></thead>
+        <tbody id="feeds-table"></tbody></table>
+      </div>
+    </div>
+    <div id="sec-add" class="section">
+      <h2>Add a Feed</h2>
+      <div class="form-card">
+        <h3>RSS / Atom Feed</h3>
+        <div class="form-group"><label>Feed URL *</label><input id="add-url" placeholder="https://example.com/feed.xml"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Discord Webhook URL *</label><input id="add-webhook" placeholder="https://discord.com/api/webhooks/..."></div>
+          <div class="form-group"><label>Category</label><input id="add-category" placeholder="General" value="General"></div>
+        </div>
+        <div class="form-group"><label>Keywords (comma-separated, optional)</label><input id="add-keywords" placeholder="AI, security, python"></div>
+        <button class="btn btn-primary" onclick="addFeed()">Add Feed</button>
+      </div>
+      <div class="form-card">
+        <h3>Twitch Streamer</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Twitch Username *</label><input id="twitch-name" placeholder="streamer_username"></div>
+          <div class="form-group"><label>Discord Webhook URL *</label><input id="twitch-webhook" placeholder="https://discord.com/api/webhooks/..."></div>
+        </div>
+        <button class="btn btn-primary" onclick="addTwitch()">Add Twitch Monitor</button>
+      </div>
+    </div>
+    <div id="sec-articles" class="section">
+      <h2>Article History</h2>
+      <div class="card">
+        <div class="card-header"><h3>Last 100 Articles</h3><button class="btn btn-muted" onclick="loadArticles()">↻ Refresh</button></div>
+        <table><thead><tr><th>Image</th><th>Title</th><th>Feed</th><th>Category</th><th>Sent</th></tr></thead>
+        <tbody id="articles-table"></tbody></table>
+      </div>
+    </div>
+    <div id="sec-health" class="section">
+      <h2>Feed Health</h2>
+      <div class="card">
+        <div class="card-header"><h3>Failure Tracking</h3><button class="btn btn-muted" onclick="loadHealth()">↻ Refresh</button></div>
+        <table><thead><tr><th>Feed</th><th>Failures</th><th>Last Checked</th><th>Last Success</th><th>Last Error</th></tr></thead>
+        <tbody id="health-table"></tbody></table>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <div class="mobile-nav-btn active" onclick="show('overview')" data-section="overview"><span class="icon">🏠</span>Home</div>
+    <div class="mobile-nav-btn" onclick="show('feeds')" data-section="feeds"><span class="icon">📰</span>Feeds</div>
+    <div class="mobile-nav-btn" onclick="show('add')" data-section="add"><span class="icon">➕</span>Add</div>
+    <div class="mobile-nav-btn" onclick="show('articles')" data-section="articles"><span class="icon">📋</span>History</div>
+    <div class="mobile-nav-btn" onclick="show('health')" data-section="health"><span class="icon">❤️</span>Health</div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+const SECTIONS=['overview','feeds','add','articles','health'];
+function show(id){
+  SECTIONS.forEach(s=>{document.getElementById('sec-'+s).classList.toggle('active',s===id);});
+  document.querySelectorAll('.nav-link,.mobile-nav-btn').forEach(el=>{el.classList.toggle('active',el.dataset.section===id);});
+  if(id==='overview')loadOverview();
+  if(id==='feeds')loadFeeds();
+  if(id==='articles')loadArticles();
+  if(id==='health')loadHealth();
+}
+let toastTimer;
+function toast(msg,ok=true){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='show '+(ok?'ok':'err');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.className='',3000);
+}
+function fmtTime(ts){
+  if(!ts)return'—';
+  const d=new Date(ts*1000),diff=Math.floor((Date.now()-d.getTime())/1000);
+  if(diff<60)return diff+'s ago';if(diff<3600)return Math.floor(diff/60)+'m ago';
+  if(diff<86400)return Math.floor(diff/3600)+'h ago';return d.toLocaleDateString();
+}
+function short(s,n=50){if(!s)return'—';return s.length>n?s.slice(0,n)+'…':s;}
+function catBadge(cat){
+  if(!cat)return'';
+  const cl=cat.toLowerCase().includes('twitch')?'badge-purple':cat.toLowerCase().includes('youtube')?'badge-red':'badge-green';
+  return`<span class="badge ${cl}">${esc(cat)}</span>`;
+}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function api(path,opts={}){const r=await fetch(path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
+
+async function loadOverview(){
+  try{
+    const[stats,arts]=await Promise.all([api('/api/stats'),api('/api/articles?limit=8')]);
+    document.getElementById('stat-total').textContent=stats.total_feeds;
+    document.getElementById('stat-active').textContent=stats.active_feeds;
+    document.getElementById('stat-articles').textContent=stats.total_articles;
+    document.getElementById('stat-last').textContent=fmtTime(stats.last_article_at);
+    const tb=document.getElementById('overview-articles');
+    if(!arts.length){tb.innerHTML='<tr class="empty-row"><td colspan="4">No articles sent yet.</td></tr>';return;}
+    tb.innerHTML=arts.map(a=>`<tr>
+      <td>${a.image?`<img class="art-img" src="${esc(a.image)}" onerror="this.style.display='none'">`:'<div class="art-img"></div>'}</td>
+      <td><a href="${esc(a.link)}" target="_blank" style="color:var(--accent);text-decoration:none">${esc(short(a.title,60))}</a></td>
+      <td>${catBadge(a.category)}</td>
+      <td style="color:var(--muted);font-size:12px">${fmtTime(a.sent_at)}</td>
+    </tr>`).join('');
+  }catch(e){toast('Failed to load overview: '+e.message,false);}
+}
+
+let feedsCache=[];
+async function loadFeeds(){
+  try{
+    feedsCache=await api('/api/feeds');
+    const tb=document.getElementById('feeds-table');
+    document.getElementById('feeds-count').textContent=feedsCache.length+' Feeds';
+    if(!feedsCache.length){tb.innerHTML='<tr class="empty-row"><td colspan="5">No feeds yet.</td></tr>';return;}
+    tb.innerHTML=feedsCache.map((f,i)=>`<tr>
+      <td>${f.enabled?'<span class="badge badge-green">Active</span>':'<span class="badge badge-muted">Paused</span>'}</td>
+      <td><div class="url-cell" title="${esc(f.url)}">${esc(f.url)}</div></td>
+      <td>${catBadge(f.category)}</td>
+      <td style="font-size:12px;color:var(--muted)">${f.keywords?esc(f.keywords):'—'}</td>
+      <td><div class="action-row">
+        <button class="btn btn-sm btn-accent" onclick="testFeed(${i})">Test</button>
+        <button class="btn btn-sm btn-muted" onclick="toggleFeed(${i})">${f.enabled?'Pause':'Resume'}</button>
+        <button class="btn btn-sm btn-danger" onclick="removeFeed(${i})">Remove</button>
+      </div></td>
+    </tr>`).join('');
+  }catch(e){toast('Failed to load feeds: '+e.message,false);}
+}
+
+async function testFeed(i) {
+  const f = feedsCache[i];
+  try {
+    const res = await api('/api/feeds/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: f.url })
+    });
+    if (res.ok) {
+      toast('✅ Latest content sent to Discord!');
+    } else {
+      toast('❌ Test failed: ' + (res.error || 'Unknown error'), false);
+    }
+  } catch (e) {
+    toast('❌ Test failed: ' + e.message, false);
+  }
+}
+
+async function toggleFeed(i){
+  const f=feedsCache[i];
+  try{
+    await api('/api/feeds/'+encodeURIComponent(f.url),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:!f.enabled})});
+    toast(f.enabled?'Feed paused.':'Feed resumed.');loadFeeds();
+  }catch(e){toast('Error: '+e.message,false);}
+}
+async function removeFeed(i){
+  const f=feedsCache[i];
+  if(!confirm('Remove feed?\n'+f.url))return;
+  try{await api('/api/feeds/'+encodeURIComponent(f.url),{method:'DELETE'});toast('Feed removed.');loadFeeds();}
+  catch(e){toast('Error: '+e.message,false);}
+}
+
+async function addFeed(){
+  const url=document.getElementById('add-url').value.trim();
+  const webhook=document.getElementById('add-webhook').value.trim();
+  const category=document.getElementById('add-category').value.trim()||'General';
+  const keywords=document.getElementById('add-keywords').value.trim();
+  if(!url||!webhook){toast('URL and webhook are required.',false);return;}
+  try{
+    await api('/api/feeds',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,webhook,category,keywords})});
+    toast('Feed added! ✅');
+    ['add-url','add-webhook','add-keywords'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('add-category').value='General';
+  }catch(e){toast('Error: '+e.message,false);}
+}
+async function addTwitch(){
+  const name=document.getElementById('twitch-name').value.trim();
+  const webhook=document.getElementById('twitch-webhook').value.trim();
+  if(!name||!webhook){toast('Username and webhook are required.',false);return;}
+  try{
+    await api('/api/feeds',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:'twitch:'+name,webhook,category:'Twitch',keywords:''})});
+    toast('Twitch monitor added! ✅');
+    document.getElementById('twitch-name').value='';document.getElementById('twitch-webhook').value='';
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+async function loadArticles(){
+  try{
+    const arts=await api('/api/articles?limit=100');
+    const tb=document.getElementById('articles-table');
+    if(!arts.length){tb.innerHTML='<tr class="empty-row"><td colspan="5">No articles yet.</td></tr>';return;}
+    tb.innerHTML=arts.map(a=>`<tr>
+      <td>${a.image?`<img class="art-img" src="${esc(a.image)}" onerror="this.style.display='none'">`:'<div class="art-img"></div>'}</td>
+      <td><a href="${esc(a.link)}" target="_blank" style="color:var(--accent);text-decoration:none">${esc(short(a.title,70))}</a></td>
+      <td><div class="url-cell">${esc(short(a.feed_url,40))}</div></td>
+      <td>${catBadge(a.category)}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${fmtTime(a.sent_at)}</td>
+    </tr>`).join('');
+  }catch(e){toast('Failed to load articles: '+e.message,false);}
+}
+
+async function loadHealth(){
+  try{
+    const rows=await api('/api/health');
+    const tb=document.getElementById('health-table');
+    if(!rows.length){tb.innerHTML='<tr class="empty-row"><td colspan="5">No health data yet. Run at least one check cycle.</td></tr>';return;}
+    tb.innerHTML=rows.map(r=>{
+      const icon=r.fail_count===0?'✅':r.fail_count<5?'⚠️':'❌';
+      const color=r.fail_count===0?'var(--accent)':r.fail_count<5?'var(--yellow)':'var(--red)';
+      const pct=Math.min(r.fail_count*10,100);
+      return`<tr>
+        <td><div class="url-cell" title="${esc(r.url)}">${icon} ${esc(r.url)}</div></td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="fail-bar"><div class="fail-bar-fill" style="width:${pct}%;background:${color}"></div></div><span style="color:${color};font-weight:600">${r.fail_count}</span></div></td>
+        <td style="color:var(--muted);font-size:12px">${fmtTime(r.last_checked)}</td>
+        <td style="color:var(--muted);font-size:12px">${fmtTime(r.last_success)}</td>
+        <td style="color:var(--red);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.last_error||'')}">${esc(r.last_error||'—')}</td>
+      </tr>`;
+    }).join('');
+  }catch(e){toast('Failed to load health: '+e.message,false);}
+}
+
+loadOverview();
+setInterval(()=>{
+  const a=document.querySelector('.section.active')?.id?.replace('sec-','');
+  if(a==='overview')loadOverview();if(a==='feeds')loadFeeds();if(a==='articles')loadArticles();if(a==='health')loadHealth();
+},60000);
+</script>
+</body>
+</html>

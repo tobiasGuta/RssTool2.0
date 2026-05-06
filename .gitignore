@@ -1,0 +1,13 @@
+.env
+data/*.db
+data/*.db-shm
+data/*.db-wal
+feeds_config.json
+feeds_config.json.migrated
+seen_entries.txt
+logs/*.log
+logs/*.log.*
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store

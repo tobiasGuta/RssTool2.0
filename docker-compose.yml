@@ -1,0 +1,19 @@
+services:
+  rsstool:
+    build:
+      context: .
+      network: host
+    container_name: rsstool2
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"    # Dashboard — accessible at http://localhost:8080
+    volumes:
+      - ./data:/app/data    # Persist database
+      - ./logs:/app/logs    # Persist logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/stats"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

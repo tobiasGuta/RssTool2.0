@@ -1,0 +1,41 @@
+# RssTool2.0 — all packages pinned for reproducibility
+# Install: pip install -r requirements.txt
+
+# Async HTTP & parsing
+aiohttp==3.11.18
+aiohappyeyeballs==2.6.1
+aiosignal==1.3.2
+attrs==25.3.0
+frozenlist==1.6.0
+multidict==6.4.3
+propcache==0.3.1
+yarl==1.20.0
+
+# Feed parsing
+feedparser==6.0.11
+sgmllib3k==1.0.0
+
+# HTML parsing
+beautifulsoup4==4.13.4
+soupsieve==2.7
+
+# Discord bot
+discord.py==2.3.2
+requests==2.32.3
+urllib3==2.4.0
+certifi==2025.1.31
+charset-normalizer==3.4.1
+idna==3.10
+
+# Web dashboard
+fastapi==0.115.12
+uvicorn==0.34.2
+starlette==0.46.2
+pydantic==2.11.4
+anyio==4.9.0
+httptools==0.6.4
+python-multipart==0.0.20
+
+# Utilities
+python-dotenv==1.1.0
+typing_extensions==4.13.2
